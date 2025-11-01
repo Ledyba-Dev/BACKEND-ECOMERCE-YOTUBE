@@ -1,7 +1,7 @@
 import OrderModel from '../models/OrderModel.js'
 import ProductModel from '../models/ProductModel.js'
 import { client } from '../config/mercadoPagoConfig.js'
-import { Order, Payment } from 'mercadopago'
+import { Payment } from 'mercadopago'
 import crypto from 'crypto'
 
 const validateSignature = (req, res) => {

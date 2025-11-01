@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import { required } from 'zod/mini'
 
 const OrderSchema = new mongoose.Schema(
     {
@@ -17,11 +16,11 @@ const OrderSchema = new mongoose.Schema(
                 },
                 name: {
                     type: String,
-                    required: true,
+                    required: false,
                 },
                 price: {
                     type: Number,
-                    required,
+                    required: true,
                 },
                 quantity: {
                     type: Number,
@@ -29,7 +28,7 @@ const OrderSchema = new mongoose.Schema(
                 },
                 imageUrl: {
                     type: String,
-                    required: true,
+                    required: false,
                 },
             },
         ],

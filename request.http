@@ -94,27 +94,29 @@ POST http://localhost:3001/api/orders/create
 Content-Type: application/json
 
 {
-  "products": [
+  "userId": "68fbb1fc0cd8b7103afbdd2a",
+  "items": [
     {
-      "productId": "REEMPLAZAR_CON_ID_REAL",
-      "quantity": 2
-    },
-    {
-      "productId": "REEMPLAZAR_CON_ID_REAL",
-      "quantity": 1
+      "id": "68e8c79c2b9db47045761a99",
+      "name": "Taza de One Piece",
+      "quantity": 2,
+      "unit_price": 10000,
+      "imageUrl": "https://res.cloudinary.com/dhls84sly/image/upload/v1757002888/onepiece_pp9ypj.webp"
     }
   ],
+  "payer": {
+    "email": "cliente@ejemplo.com"
+  },
   "shippingInfo": {
     "firstName": "Juan",
     "lastName": "Pérez",
-    "email": "juan.perez@email.com",
-    "phone": "1123456789",
     "address": {
       "street": "Av. Corrientes",
       "number": "1234",
       "city": "Buenos Aires",
       "state": "CABA",
       "zipCode": "C1043AAZ"
-    }
+    },
+    "phone": "1123456789"
   }
 }
