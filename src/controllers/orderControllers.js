@@ -1,29 +1,26 @@
-import { Preference } from 'mercadopago' 
-import { client } from '../config/mercadoPagoConfig.js' 
-import OrderModel from '../models/OrderModel.js' 
+import { Preference } from 'mercadopago'
+import { client } from '../config/mercadoPagoConfig.js'
+import OrderModel from '../models/OrderModel.js'
 
-const preference = new Preference(client) 
+const preference = new Preference(client)
 
-export const createOrder = async (req, res) => { 
-    try { 
-        const { items, payer, shippingInfo } = req.body 
+export const createOrder = async (req, res) => {
+    try {
+        const { items, payer, shippingInfo } = req.body
 
+        if (!items || !items.length) {
+            return res.status(400).json({
+                success: false,
+                message: 'Se requieren items para crear la orden',
+            })
+        }
 
-        if (!items || !items.length) { 
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Se requieren items para crear la orden', 
-            }) 
-        } 
-
-
-        if (!payer || !payer.email) { 
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Se requiere email del comprador', 
-            }) 
-        } 
-
+        if (!payer || !payer.email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Se requiere email del comprador',
+            })
+        }
 
         // Crear la orden en la base de datos primero
         const newOrder = new OrderModel({
@@ -43,47 +40,47 @@ export const createOrder = async (req, res) => {
             },
         })
 
-        const savedOrder = await newOrder.save() 
+        const savedOrder = await newOrder.save()
 
-        // Crear preferencia en Mercado Pago con external_reference 
-        const result = await preference.create({ 
-            body: { 
-                items: items, 
-                payer: { 
-                    email: payer.email, 
-                }, 
-                external_reference: savedOrder._id.toString(), 
-                back_urls: { 
-                    success: `${process.env.FRONTEND_URL}/payment/success`, 
-                    failure: `${process.env.FRONTEND_URL}/payment/failure`, 
-                    pending: `${process.env.FRONTEND_URL}/payment/pending`, 
-                }, 
-                notification_url: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/webhook`, 
-                metadata: { 
-                    order_id: savedOrder._id.toString(), 
-                }, 
-            }, 
-        }) 
+        // Crear preferencia en Mercado Pago con external_reference
+        const result = await preference.create({
+            body: {
+                items: items,
+                payer: {
+                    email: payer.email,
+                },
+                external_reference: savedOrder._id.toString(),
+                back_urls: {
+                    success: `${process.env.FRONTEND_URL}/payment/success`,
+                    failure: `${process.env.FRONTEND_URL}/payment/failure`,
+                    pending: `${process.env.FRONTEND_URL}/payment/pending`,
+                },
+                notification_url: `${
+                    process.env.BACKEND_URL || 'http://localhost:3001'
+                }/api/webhook`,
+                metadata: {
+                    order_id: savedOrder._id.toString(),
+                },
+            },
+        })
 
+        console.log('RESULT DE LA PREFERENCIA CREADA', result)
+        // Actualizar la orden con el ID de preferencia de MP
+        savedOrder.mercadoPagoData.preferenceId = result.id
+        await savedOrder.save()
 
-        console.log('RESULT DE LA PREFERENCIA CREADA', result) 
-        // Actualizar la orden con el ID de preferencia de MP 
-        savedOrder.mercadoPagoData.preferenceId = result.id 
-        await savedOrder.save() 
-
-
-        res.status(201).json({ 
-            success: true, 
-            message: 'Orden creada exitosamente', 
-            paymentUrl: result.init_point, 
-            preferenceId: result.id, 
-        }) 
-    } catch (error) { 
-        console.log('Error al crear orden:', error) 
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error al crear la orden', 
-            error: error.message, 
-        }) 
-    } 
+        res.status(201).json({
+            success: true,
+            message: 'Orden creada exitosamente',
+            paymentUrl: result.init_point.trim(),
+            preferenceId: result.id,
+        })
+    } catch (error) {
+        console.log('Error al crear orden:', error)
+        res.status(500).json({
+            success: false,
+            message: 'Error al crear la orden',
+            error: error.message,
+        })
+    }
 }
